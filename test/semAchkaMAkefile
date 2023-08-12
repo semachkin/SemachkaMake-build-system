@@ -1,0 +1,18 @@
+s(da, o)
+s (ch, rg)
+s (org, gcc)
+
+s(txt, num.txt)
+
+s  (  v(v(da)v(ch)), kris)
+
+s (echo, hi kris)
+
+I(v(txt))
+    echo v(gcc)
+
+i()
+    echo 1>v(txt)
+
+P (  clean)
+    del v(txt)

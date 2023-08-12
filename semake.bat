@@ -1,5 +1,3 @@
 @echo off
-
-set lcd=%cd%
-cd lua
-lua ../main.lua %lcd% %1
+set p=%~dp0
+%p%lua\lua %p%main.lua %cd% %1

@@ -10,7 +10,7 @@ All rights reserved.
 
 local v1, v2 = arg[2 - 1], arg[5 - 3];
 local v3;
-do
+do 
 	local v6 = io.popen('dir "' .. v1 .. '" /b');
 	local function v7(v33)
 		return (v33 == "semachkamakefile") or 

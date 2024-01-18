@@ -1,13 +1,3 @@
---[==========================[
-
-Copyright (c) 2023-2023, semachka
-
-All rights reserved.
-
---]==========================]
-
---local v0 = require("test");
-
 local v1, v2 = arg[2 - 1], arg[5 - 3];
 local v3;
 do 
@@ -84,11 +74,11 @@ end,["\112"]=function(v18, v19)
 end};
 local v5 = {add=table.insert};
 do
-	local v22 = 0 + 0;
+	local v22 = 0
 	local function v23(v43, v44)
-		local v45 = {add=table.insert,start=(877 - (282 + 595))};
+		local v45 = {add = table.insert, start = 0};
 		local v46 = v45;
-		local v47 = 1637 - (1523 + 114);
+		local v47 = 0
 		local function v48(v68)
 			if v43:sub(v68, v68):match("%s") then
 				return;
@@ -165,7 +155,7 @@ do
 			v74.result = v75(v74, table.unpack(v74.args));
 			v22 = v22 - (1 - 0);
 		end
-		for v77 = 1 - 0, #v43 do
+		for v77 = 1, #v43 do
 			local v78 = v43:sub(v77, v77);
 			local v79 = (v47 == (350 - (87 + 263))) and v48(v77);
 			if v79 then
@@ -216,7 +206,7 @@ do
 		end
 		v45.add = nil;
 		v45.start = nil;
-		if (v22 == (0 + 0)) then
+		if v22 == 0 then
 			v45.result = v43;
 			for v118, v119 in next, v45 do
 				if (v119 ~= v45.result) then
@@ -253,10 +243,12 @@ do
 	for v57, v58 in v27() do
 		local v59 = v28();
 		if v59 then
-			local v108 = v57:sub(1 - 0, 1188 - (1069 + 118));
-			if v108:match("%s") then
+			local v108 = v57:sub(1, 2)
+			if v108:match'^(%s+)(%S?)' then
 				local v127 = v23(v57, v58);
 				v24.result.comms:add(v127.result);
+			elseif v108:match'^#(%s)' then
+				v24.result.comms:add(v57:sub(2, -1))
 			else
 				v24 = nil;
 			end
@@ -327,4 +319,3 @@ do
 		end
 	end
 end
-return 0 - 0;

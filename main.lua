@@ -1,4 +1,5 @@
-local v1, v2 = arg[2 - 1], arg[5 - 3];
+local v1, v2 = arg[1], arg[2]
+local test = require'test'
 local v3;
 do 
 	local v6 = io.popen('dir "' .. v1 .. '" /b');
@@ -26,7 +27,7 @@ end
 do
 	string.replace = function(v35, v36, v37)
 		local v38 = "";
-		local v39 = 1 - 0;
+		local v39 = 1;
 		local v40;
 		while true do
 			local v67 = "";
@@ -42,10 +43,10 @@ do
 			end
 			v39 = v39 + (2 - 1);
 			if (v39 > #v35) then
-				error("pointer overflow");
+				return v35
 			end
 		end
-		v38 = v35:sub(620 - (555 + 64), v39 - (932 - (857 + 74))) .. v37 .. v35:sub(v40 + (569 - (367 + 201)), -(928 - (214 + 713)));
+		v38 = v35:sub(1, v39 - 1) .. v37 .. v35:sub(v40 + 1, -1);
 		return v38;
 	end;
 end
@@ -71,7 +72,25 @@ end,["\112"]=function(v18, v19)
 		return (...);
 	end});
 	return v21;
-end};
+end}; do
+	v4["f"] = function(obj, name, src)
+		if #name > 1 then
+			error("semake: attempt to create a function with a name greater than one letter at line " .. obj.line)
+		end
+		if v4[name] then
+			error("semake: attempt to redefine an already existing function at line " .. obj.line)
+		end
+		v4[name] = function(linfo, ...)
+			local args = {...}
+			for i,arg in next, args do
+				src = src:replace("%".. i, arg)
+			end
+			return src
+		end
+		return ""
+	end
+end
+
 local v5 = {add=table.insert};
 do
 	local v22 = 0
@@ -159,7 +178,7 @@ do
 			local v78 = v43:sub(v77, v77);
 			local v79 = (v47 == (350 - (87 + 263))) and v48(v77);
 			if v79 then
-				local v116 = {code=v78,start=v79,space=v43:sub(v77 + (181 - (67 + 113)), v79 - (1 + 0)),stack=v47,args={"",add=table.insert}};
+				local v116 = {line=v44,code=v78,start=v79,space=v43:sub(v77 + (181 - (67 + 113)), v79 - (1 + 0)),stack=v47,args={"",add=table.insert}};
 				v45:add(v116);
 				v46 = v116;
 			else
@@ -263,9 +282,10 @@ do
 	v25:close();
 end
 do
-	local v29 = {add=table.insert};
+	local stack = {add=table.insert};
 	local function v30(v60)
 		v60.comms.add = nil;
+		local commands = ''
 		for v82, v83 in next, v60.comms do
 			os.execute("cd " .. v1 .. " & " .. v83);
 		end
@@ -285,16 +305,16 @@ do
 		local v66 = v31(v64);
 		if v66 then
 			if v65 then
-				table.remove(v29, v65);
+				table.remove(stack, v65);
 			end
 			v30(v64.result);
-			for v120, v121 in next, v29 do
+			for v120, v121 in next, stack do
 				if (v120 ~= "add") then
 					v32(v121, v120);
 				end
 			end
 		else
-			v29:add(v64);
+			stack:add(v64);
 		end
 	end
 	if v2 then
@@ -307,14 +327,14 @@ do
 		v5.add = nil;
 		for v112, v113 in next, v5 do
 			for v122, v123 in next, v113 do
-				if ((type(v123) == "table") and (v123.code:lower() == "\105")) then
+				if ((type(v123) == "table") and (v123.code:lower() == "i")) then
 					v123.line = v113.line;
 					v32(v123);
 				end
 			end
 		end
-		v29.add = nil;
-		for v114, v115 in next, v29 do
+		stack.add = nil;
+		for v114, v115 in next, stack do
 			print("semake: instruction at line " .. v115.line .. " didnt wait for all components of build.");
 		end
 	end

@@ -89,10 +89,11 @@ end}; do
 		local newfun = {}
 		newfun.f = function(obj, linfo, ...)
 			local args = {...}
+			local result = src
 			for i,arg in next, args do
-				src = src:replace("%".. i, arg)
+				result = result:replace("%".. i, arg)
 			end
-			return src
+			return result
 		end
 		newfun.userfunc = true
 		newfun = setmetatable(newfun, {__call = newfun.f})

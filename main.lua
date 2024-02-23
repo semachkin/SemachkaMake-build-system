@@ -300,6 +300,7 @@ do
 		end
 		if not iscmmndinst then
 			local v109 = parse(linesrc, linei);
+			v109.line = linei
 			v5:add(v109);
 			lastinstr = v109[#v109];
 		end

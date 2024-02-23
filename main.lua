@@ -1,5 +1,4 @@
 local v1, v2 = arg[1], arg[2]
-local test = require'test'
 local v3;
 do 
 	local v6 = io.popen('dir "' .. v1 .. '" /b');
@@ -80,13 +79,17 @@ end}; do
 		if v4[name] then
 			error("semake: attempt to redefine an already existing function at line " .. obj.line)
 		end
-		v4[name] = function(linfo, ...)
+		local newfun = {}
+		newfun.f = function(obj, linfo, ...)
 			local args = {...}
 			for i,arg in next, args do
 				src = src:replace("%".. i, arg)
 			end
 			return src
 		end
+		newfun.userfunc = true
+		newfun = setmetatable(newfun, {__call = newfun.f})
+		v4[name:lower()] = newfun
 		return ""
 	end
 end
@@ -94,17 +97,17 @@ end
 local v5 = {add=table.insert};
 do
 	local v22 = 0
-	local function v23(v43, v44)
+	local function parse(src, linei)
 		local v45 = {add = table.insert, start = 0};
 		local v46 = v45;
 		local v47 = 0
-		local function v48(v68)
-			if v43:sub(v68, v68):match("%s") then
+		local function v48(idx)
+			if src:sub(idx, idx):match("%s") then
 				return;
 			end
-			for v91 = v68 + 1 + 0, #v43 do
-				local v92 = v43:sub(v91, v91);
-				if (v92 == "\40") then
+			for v91 = idx + 1, #src do
+				local v92 = src:sub(v91, v91);
+				if (v92 == "(") then
 					return v91;
 				elseif v92:match("%S") then
 					return;
@@ -113,7 +116,7 @@ do
 		end
 		local function v49()
 			if not v46.args then
-				error("semake: invalid syntax at line " .. v44);
+				error("semake: invalid syntax at line " .. linei);
 			end
 		end
 		local function v50(v69)
@@ -152,11 +155,14 @@ do
 		local function v52(v74)
 			v22 = v22 + (958 - (892 + 65));
 			for v99, v100 in next, v74.args do
-				local v101 = v23(v100, v44);
-				if (#v101 > (0 - 0)) then
+				if v74.code == 'f' and v99 == 2 then
+					break
+				end
+				local v101 = parse(v100, linei);
+				if (#v101 > 0) then
 					for v128, v129 in next, v101 do
 						if (type(v129) == "table") then
-							v52(v129, v44);
+							v52(v129, linei);
 							if v129.result then
 								v74.args[v99] = v74.args[v99]:replace(v129.source, v129.result);
 							end
@@ -166,7 +172,7 @@ do
 			end
 			local v75 = v4[v74.code:lower()];
 			if not v75 then
-				error("semake: attempt to call unknown functon at line " .. v44);
+				error("semake: attempt to call unknown functon at line " .. linei);
 			end
 			for v102, v103 in next, v74.args do
 				v74.args[v102] = v50(v103);
@@ -174,11 +180,18 @@ do
 			v74.result = v75(v74, table.unpack(v74.args));
 			v22 = v22 - (1 - 0);
 		end
-		for v77 = 1, #v43 do
-			local v78 = v43:sub(v77, v77);
-			local v79 = (v47 == (350 - (87 + 263))) and v48(v77);
+		for symbi = 1, #src do
+			local symb = src:sub(symbi, symbi);
+			local v79 = (v47 == 0) and v48(symbi);
 			if v79 then
-				local v116 = {line=v44,code=v78,start=v79,space=v43:sub(v77 + (181 - (67 + 113)), v79 - (1 + 0)),stack=v47,args={"",add=table.insert}};
+				local v116 = {
+					line=linei,
+					code=symb,
+					start=v79,
+					space=src:sub(symbi + 1, v79 - 1),
+					stack=v47,
+					args={"",add=table.insert}
+				};
 				v45:add(v116);
 				v46 = v116;
 			else
@@ -188,98 +201,103 @@ do
 					end
 					local v124 = v46.args;
 					local v125 = #v124;
-					v124[v125] = v124[v125] .. v78;
+					v124[v125] = v124[v125] .. symb;
 				end
-				if (v78 == "\40") then
-					if (v47 > (0 + 0)) then
+				if (symb == "\40") then
+					if (v47 > 0) then
 						v117();
 					end
-					v47 = v47 + (3 - 2);
-				elseif (v78 == "\41") then
-					v47 = v47 - (953 - (802 + 150));
+					v47 = v47 + 1;
+				elseif (symb == "\41") then
+					v47 = v47 - 1;
 					if (v47 > (0 - 0)) then
 						v117();
 					end
 					if (v47 == (0 - 0)) then
 						v46.args.add = nil;
-						v46.finish = v77;
+						v46.finish = symbi;
 						v46.source = v51(v46);
 						if (v22 == (0 + 0)) then
 							v52(v46);
 						end
 						v46 = v45;
 					end
-				elseif (v78 == "\44") then
+				elseif (symb == "\44") then
 					v49();
 					v46.args:add("");
-				elseif (v77 > v46.start) then
+				elseif (symbi > v46.start) then
 					if (v47 > (997 - (915 + 82))) then
 						v49();
 					end
 					v117();
 				end
-				if (v47 < (0 - 0)) then
-					error("semake: invalid syntax at line " .. v44);
+				if (v47 < 0) then
+					error("semake: invalid syntax at line " .. linei);
 				end
 			end
 		end
 		v45.add = nil;
 		v45.start = nil;
 		if v22 == 0 then
-			v45.result = v43;
+			v45.result = src;
 			for v118, v119 in next, v45 do
 				if (v119 ~= v45.result) then
+					local fundata = v4[v119.code:lower()]
+					if type(fundata) == 'table' and fundata.userfunc then
+						v119.result = parse(v119.result, v119.line)
+						v119.result = v119.result.result
+					end
 					v45.result = v45.result:replace(v119.source, v119.result);
 				end
 			end
 		end
 		return v45;
 	end
-	local v24;
-	local v25 = io.input(v1 .. "\\" .. v3);
-	local v26 = {};
-	for v55 in v25:lines() do
-		table.insert(v26, v55);
+	local lastinstr;
+	local srcfile = io.input(v1 .. "\\" .. v3);
+	local linesA = {};
+	for v55 in srcfile:lines() do
+		table.insert(linesA, v55);
 	end
-	v25:seek("end", -v25:seek());
-	local function v27(...)
-		local v56 = v25:lines(...);
+	srcfile:seek("end", -srcfile:seek());
+	local function lineprser(...)
+		local v56 = srcfile:lines(...);
 		return function(...)
-			local v80 = v56(...);
-			local v81;
-			for v106, v107 in next, v26 do
-				if (v107 == v80) then
-					v81 = v106;
+			local line = v56(...);
+			local linesrc;
+			for v106, v107 in next, linesA do
+				if (v107 == line) then
+					linesrc = v106;
 					break;
 				end
 			end
-			return v80, v81;
+			return line, linesrc;
 		end;
 	end
 	local function v28()
-		return (v24 and (v24.code:lower() == "\105")) or (v24 and (v24.code:lower() == "\112"));
+		if not lastinstr then return end
+		return (lastinstr.code:lower() == "\105") or (lastinstr.code:lower() == "\112")
 	end
-	for v57, v58 in v27() do
-		local v59 = v28();
-		if v59 then
-			local v108 = v57:sub(1, 2)
-			if v108:match'^(%s+)(%S?)' then
-				local v127 = v23(v57, v58);
-				v24.result.comms:add(v127.result);
-			elseif v108:match'^#(%s)' then
-				v24.result.comms:add(v57:sub(2, -1))
+	for linesrc, linei in lineprser() do
+		local iscmmndinst = v28();
+		if iscmmndinst then
+			local annex = linesrc:sub(1, 2)
+			if annex:match'^(%s+)(%S?)' then
+				local v127 = parse(linesrc, linei);
+				lastinstr.result.comms:add(v127.result);
+			elseif annex:match'^#(%s)' then
+				lastinstr.result.comms:add(linesrc:sub(2, -1))
 			else
-				v24 = nil;
+				lastinstr = nil;
 			end
 		end
-		if not v59 then
-			local v109 = v23(v57, v58);
-			v109.line = v58;
+		if not iscmmndinst then
+			local v109 = parse(linesrc, linei);
 			v5:add(v109);
-			v24 = v109[#v109];
+			lastinstr = v109[#v109];
 		end
 	end
-	v25:close();
+	srcfile:close();
 end
 do
 	local stack = {add=table.insert};

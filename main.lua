@@ -49,10 +49,15 @@ do
 		return v38;
 	end;
 end
+local function tfaerr(line)
+	error("semake: too few arguments at line ".. line)
+end
 local v4 = {["\115"]=function(v9, v10, v11)
+	if not v10 or not v11 then tfaerr(v9.line) end
 	env[v10] = v11;
 	return v11;
 end,["\118"]=function(v13, v14)
+	if not v14 then tfaerr(v13.line) end
 	return env[v14] or "";
 end,["\105"]=function(v15, ...)
 	local v16 = {...};
@@ -66,6 +71,7 @@ end,["\105"]=function(v15, ...)
 	end});
 	return v17;
 end,["\112"]=function(v18, v19)
+	if not v19 then tfaerr(v18.line) end
 	pointers[v19] = v18;
 	local v21 = setmetatable({comms={add=table.insert}}, {__concat=function(...)
 		return (...);
@@ -73,6 +79,7 @@ end,["\112"]=function(v18, v19)
 	return v21;
 end}; do
 	v4["f"] = function(obj, name, src)
+		if not name or not src then tfaerr(obj.line) end
 		if #name > 1 then
 			error("semake: attempt to create a function with a name greater than one letter at line " .. obj.line)
 		end
